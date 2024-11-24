@@ -1,5 +1,6 @@
 const createUserToken = require("../helpers/created-user-token");
-const getToken = require('../helpers/get-token')
+const getUserByToken = require("../helpers/get-user-by-token");
+const getToken = require("../helpers/get-token");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
@@ -25,7 +26,7 @@ const register = async (req, res) => {
 	// Check is email is valid
 	if (!isValidEmail(email)) {
 		res.status(422).json({
-			message: "O email precisa ser um email valido!"
+			message: "O email precisa ser um email valido!",
 		});
 		return;
 	}
@@ -37,34 +38,37 @@ const register = async (req, res) => {
 
 	if (password.length < 6) {
 		res.status(422).json({
-			message: "A senha precisa ter no minimo 6 caracteres!"
+			message: "A senha precisa ter no minimo 6 caracteres!",
 		});
 		return;
 	}
 
 	if (!confirmpassword) {
 		res.status(422).json({
-			message: "A confirmação de senha é obrigatória!"
+			message: "A confirmação de senha é obrigatória!",
 		});
 		return;
 	}
 
-    if(confirmpassword.length < 6) {
-        res.status(422).json({ message: "A confirmação de senha precisa ter no minimo 6 caracteres!"})
-        return
-    }
+	if (confirmpassword.length < 6) {
+		res.status(422).json({
+			message:
+				"A confirmação de senha precisa ter no minimo 6 caracteres!",
+		});
+		return;
+	}
 
 	if (confirmpassword !== password) {
 		res.status(422).json({
-			message: "A senha e a confirmação de senha náo são iguais!"
+			message: "A senha e a confirmação de senha náo são iguais!",
 		});
 		return;
 	}
 
-    if (!image) {
-        res.status(422).json({ message: "A imagem é obrigatória!" });
-        return
-    }
+	if (!image) {
+		res.status(422).json({ message: "A imagem é obrigatória!" });
+		return;
+	}
 
 	// Check if user exists
 	const userExists = await User.findOne({ email: email });
@@ -157,27 +161,98 @@ const checkUser = async (req, res) => {
 };
 
 const getUserById = async (req, res) => {
-    const { id } = req.params
+	const { id } = req.params;
 
-    const user = await User.findById(id).select("-password")
-    
-    if (!user) {
-        res.status(422).json({message: "Usuario não encontrado!"})
-        return
-    }
+	const user = await User.findById(id).select("-password");
 
-    res.status(200).json({user})
-}
+	if (!user) {
+		res.status(422).json({ message: "Usuario não encontrado!" });
+		return;
+	}
+
+	res.status(200).json({ user });
+};
 
 const editUser = async (req, res) => {
+	const { id } = req.params;
+	const { name, email, password, confirmpassword, image } = req.body;
 
-	res.status(200).json({message: "Usuario atualizado!"})
-}
+	// check if user exists
+	const token = getToken(req);
+	const user = await getUserByToken(token);
+
+	// validations
+	if (!name) {
+		res.status(422).json({ message: "O nome é obrigatório!" });
+		return; // o return cancela o resto do codigo
+	}
+
+	user.name = name;
+
+	if (!email) {
+		res.status(422).json({ message: "O email é obrigatório!" });
+		return; // o return cancela o resto do codigo
+	}
+
+	// Check is email is valid
+	if (!isValidEmail(email)) {
+		res.status(422).json({
+			message: "O email precisa ser um email valido!",
+		});
+		return;
+	}
+
+	// check if has already taken
+	const userExists = await User.findOne({ email: email });
+
+	console.log(user.email, email, userExists);
+	if (user.email !== email && userExists) {
+		res.status(422).json({ message: "Por favor utilize outro email!" });
+		return;
+	}
+
+	user.email = email;
+
+	if (!confirmpassword) {
+		res.status(422).json({
+			message: "A confirmação da senha é obrigatória!",
+		});
+		return; // o return cancela o resto do codigo
+	}
+
+	if (password !== confirmpassword) {
+		res.status(422).json({
+			message: "A senha e a confirmação de senha precisam ser iguais",
+		});
+		return; // o return cancela o resto do codigo
+	} else if (password === confirmpassword && password != null) {
+		// create a password
+		// 1 - criamos o salto com a quantidade de caracteres que serao encriptados
+		const salt = await bcrypt.genSalt(12);
+		// 2 - criamos a senha passando a senha do usuario e o salt
+		const passwordHash = await bcrypt.hash(password, salt);
+
+		user.password = passwordHash;
+	}
+
+	user.image = image
+	try {
+		const updatedUser = await User.findOneAndUpdate(
+			{ _id: user._id },
+			{ $set: user },
+			{ new: true }
+		);
+
+		res.status(200).json({ message: "Usuario atualizado com sucesso!" });
+	} catch (error) {
+		res.status(200).json({ message: error });
+	}
+};
 
 module.exports = {
 	register,
 	login,
 	checkUser,
-    getUserById,
-	editUser
+	getUserById,
+	editUser,
 };
