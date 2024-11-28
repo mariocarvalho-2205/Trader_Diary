@@ -16,11 +16,11 @@ const User = mongoose.model(
 			password: {
 				type: String,
 				required: true,
-			},  
-            image: {
-                type: String,
-                required: true
-            }
+			},
+			image: {
+				type: String,
+				required: true,
+			},
 		},
 		{
 			timestamps: true,
