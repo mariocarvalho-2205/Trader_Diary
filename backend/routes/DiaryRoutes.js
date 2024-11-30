@@ -5,6 +5,7 @@ const DiaryController = require('../controllers/DiaryController')
 // middlewares
 const verifyToken = require('../helpers/verify-token')
 
-router.post('/entry', DiaryController.createEntry)
+router.get('/all', verifyToken, DiaryController.getAllTrades)
+router.post('/entry', verifyToken, DiaryController.createEntry)
 
 module.exports = router

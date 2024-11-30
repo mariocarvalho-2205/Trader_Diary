@@ -1,5 +1,10 @@
 const Diary = require("../models/Diary");
 
+// helpers
+const getToken = require("../helpers/get-token");
+const getUserByToken = require("../helpers/get-user-by-token");
+const { trace } = require("../routes/DiaryRoutes");
+
 const createEntry = async (req, res) => {
 	const {
 		ativo,
@@ -10,7 +15,7 @@ const createEntry = async (req, res) => {
 		estrategia,
 	} = req.body;
 	let resultado_pts;
-    let res_liq
+	let res_liq;
 
 	if (!ativo) {
 		res.status(422).json({ message: "O Ativo é obrigatório!" });
@@ -60,14 +65,16 @@ const createEntry = async (req, res) => {
 		}
 	}
 
-    if (ativo === "win") {
-        res_liq = resultado_pts * 0.20;
-        console.log("res_liq", res_liq);
-    }
-    if (ativo === "dol") {
-        res_liq = resultado_pts * 10;
+	if (ativo === "win") {
+		res_liq = resultado_pts * 0.2;
+		console.log("res_liq", res_liq);
+	}
+	if (ativo === "dol") {
+		res_liq = resultado_pts * 10;
+	}
 
-    }
+	const token = getToken(req);
+	const user = await getUserByToken(token);
 
 	const entryTrade = new Diary({
 		ativo,
@@ -77,18 +84,42 @@ const createEntry = async (req, res) => {
 		preco_saida,
 		estrategia,
 		resultado_pts,
-        res_liq
+		res_liq,
+		user: {
+			_id: user._id,
+			name: user.name,
+		},
 	});
 
 	try {
 		const newTrade = await entryTrade.save();
-		res.status(201).json(newTrade);
-
+		res.status(201).json({
+			message: "Trade inserido com sucesso!",
+			newTrade,
+		});
 	} catch (error) {
 		res.status(500).json({ message: "Erro ao criar entrada", error });
 	}
 };
 
+const getAllTrades = async (req, res) => {
+	const token = getToken(req);
+	const user = await getUserByToken(token);
+	console.log(user.name);
+
+	try {
+		const trades = await Diary.find();
+        // console.log(trades.split(", "))
+		res.status(200).json(trades);
+	} catch (error) {
+		res.status(500).json({
+			message: "Algo deu errado em getAllTrades",
+			error,
+		});
+	}
+};
+
 module.exports = {
 	createEntry,
+	getAllTrades,
 };
