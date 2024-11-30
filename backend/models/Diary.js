@@ -8,19 +8,31 @@ const Diary = mongoose.model(
             type: String,
             required: true
         },
-        date: {
+        compra_venda: {
             type: String,
             required: true
         },
-        preco_compra: {
+        data: {
             type: String,
             required: true
         },
-        preco_venda: {
+        preco_entrada: {
             type: String,
             required: true
         },
-        stop: {
+        preco_saida: {
+            type: String,
+            required: true
+        },
+        estrategia: {
+            type: String,
+            required: true
+        },
+        resultado_pts: {
+            type: String,
+            required: true
+        },
+        res_liq: {
             type: String,
             required: true
         },

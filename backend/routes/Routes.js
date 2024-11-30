@@ -1,8 +1,8 @@
 const router = require('express').Router()
-const userRoutes = require('./UserRoutes')
+const UserRoutes = require('./UserRoutes')
 const DiaryRoutes = require('./DiaryRoutes')
 
-router.use('/users', userRoutes)
+router.use('/users', UserRoutes)
 router.use('/trades', DiaryRoutes)
 
 router.get('/test', (req, res) => {
