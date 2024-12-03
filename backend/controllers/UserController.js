@@ -177,6 +177,10 @@ const editUser = async (req, res) => {
 	const { id } = req.params;
 	const { name, email, password, confirmpassword, image } = req.body;
 
+	if (req.file) {
+		user.image = req.file.filename
+	}
+
 	// check if user exists
 	const token = getToken(req);
 	const user = await getUserByToken(token);
