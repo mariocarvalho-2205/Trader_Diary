@@ -11,10 +11,10 @@ const imageStorage = multer.diskStorage({
             folder = 'pets'
         }
 
-        cb(null, `public/image/${folder}`)
+        cb(null, `public/images/${folder}`)
     },
     filename: function (req, file, cb) {
-        cb(null, new Date() + path.extname(file.originalname))
+        cb(null, Date.now() + path.extname(file.originalname))
     }
 })
 

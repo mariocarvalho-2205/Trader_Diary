@@ -175,15 +175,17 @@ const getUserById = async (req, res) => {
 
 const editUser = async (req, res) => {
 	const { id } = req.params;
+	
+	// check if user exists
+	const token = getToken(req);
+	const user = await getUserByToken(token);
+	
 	const { name, email, password, confirmpassword, image } = req.body;
 
 	if (req.file) {
 		user.image = req.file.filename
 	}
 
-	// check if user exists
-	const token = getToken(req);
-	const user = await getUserByToken(token);
 
 	// validations
 	if (!name) {
@@ -239,7 +241,6 @@ const editUser = async (req, res) => {
 		user.password = passwordHash;
 	}
 
-	user.image = image
 	try {
 		const updatedUser = await User.findOneAndUpdate(
 			{ _id: user._id },

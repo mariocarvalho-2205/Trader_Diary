@@ -3,7 +3,6 @@ const Diary = require("../models/Diary");
 // helpers
 const getToken = require("../helpers/get-token");
 const getUserByToken = require("../helpers/get-user-by-token");
-const { trace } = require("../routes/DiaryRoutes");
 
 const createEntry = async (req, res) => {
 	const {
