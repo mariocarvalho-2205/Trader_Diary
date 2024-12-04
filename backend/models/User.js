@@ -21,6 +21,10 @@ const User = mongoose.model(
 				type: String,
 				required: true,
 			},
+			capital: {
+				type: String,
+				required: true
+			}
 		},
 		{
 			timestamps: true,

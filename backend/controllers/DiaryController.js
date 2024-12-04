@@ -1,4 +1,6 @@
 const Diary = require("../models/Diary");
+const User = require("../models/User");
+
 
 // helpers
 const getToken = require("../helpers/get-token");
@@ -74,6 +76,8 @@ const createEntry = async (req, res) => {
 
 	const token = getToken(req);
 	const user = await getUserByToken(token);
+	let capital_res = parseInt(user.capital) + parseInt(res_liq)
+	console.log(capital_res)
 
 	const entryTrade = new Diary({
 		ativo,
@@ -87,11 +91,17 @@ const createEntry = async (req, res) => {
 		user: {
 			_id: user._id,
 			name: user.name,
+			capital: String(capital_res)
 		},
 	});
 
 	try {
 		const newTrade = await entryTrade.save();
+		const updatedUser = await User.findOneAndUpdate(
+			{ _id: user._id },
+			{ $set: { capital: String(capital_res) } },
+			{ new: true }
+		);
 		res.status(201).json({
 			message: "Trade inserido com sucesso!",
 			newTrade,

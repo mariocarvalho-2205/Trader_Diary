@@ -7,6 +7,7 @@ const { imageUpload } = require('../helpers/image-upload')
 
 router.post('/register', UserController.register)
 router.post('/login', UserController.login)
+router.post('/aport', verifyToken, UserController.newAport)
 router.get('/checkuser', UserController.checkUser)
 router.get('/:id', UserController.getUserById)
 router.patch('/edit/:id', verifyToken, imageUpload.single('image') , UserController.editUser)

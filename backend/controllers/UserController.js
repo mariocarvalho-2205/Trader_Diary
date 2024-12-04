@@ -11,7 +11,7 @@ function isValidEmail(email) {
 }
 
 const register = async (req, res) => {
-	const { name, email, password, confirmpassword, image } = req.body;
+	const { name, email, capital, password, confirmpassword, image } = req.body;
 
 	if (!name) {
 		res.status(422).json({ message: "O nome é obrigatório!" });
@@ -28,6 +28,11 @@ const register = async (req, res) => {
 		res.status(422).json({
 			message: "O email precisa ser um email valido!",
 		});
+		return;
+	}
+
+	if (!capital) {
+		res.status(422).json({ message: "O capital é obrigatório!" });
 		return;
 	}
 
@@ -175,12 +180,12 @@ const getUserById = async (req, res) => {
 
 const editUser = async (req, res) => {
 	const { id } = req.params;
-	
+
 	// check if user exists
 	const token = getToken(req);
 	const user = await getUserByToken(token);
-	
-	const { name, email, password, confirmpassword, image } = req.body;
+
+	const { name, email, capital, password, confirmpassword, image } = req.body;
 
 	if (req.file) {
 		user.image = req.file.filename
@@ -241,6 +246,10 @@ const editUser = async (req, res) => {
 		user.password = passwordHash;
 	}
 
+	if (capital) {
+		user.capital = capital
+	}
+
 	try {
 		const updatedUser = await User.findOneAndUpdate(
 			{ _id: user._id },
@@ -250,14 +259,49 @@ const editUser = async (req, res) => {
 
 		res.status(200).json({ message: "Usuario atualizado com sucesso!" });
 	} catch (error) {
-		res.status(200).json({ message: error });
+		res.status(500).json({ message: error });
 	}
 };
 
+const newAport = async (req, res) => {
+	const newAport = req.body.aport
+
+
+	// check if user exists
+	const token = getToken(req);
+	const user = await getUserByToken(token);
+	let newCapital
+	
+	if (!newAport) {
+		res.status(422).json({ message: "O aporte é obrigatório!" })
+		return
+	} else {
+		newCapital = parseInt(newAport) + parseInt(user.capital)
+	}
+
+	console.log(String(newCapital))
+	try {
+		const updatedUser = await User.findOneAndUpdate(
+			{ _id: user._id },
+			{ $set: { capital: String(newCapital) } },
+			{ new: true }
+		);
+		res.status(201).json({
+			message: "Aporte realizado com sucesso!",
+			
+		});
+	} catch (error) {
+		res.status(500).json({ message: "Algo deu errado no aporte!", error });
+	}
+
+
+
+}
 module.exports = {
 	register,
 	login,
 	checkUser,
 	getUserById,
 	editUser,
+	newAport
 };
