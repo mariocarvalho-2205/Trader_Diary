@@ -1,5 +1,6 @@
 const Diary = require("../models/Diary");
 const User = require("../models/User");
+const calc = require('../calculos/calc')
 
 
 // helpers
@@ -46,6 +47,7 @@ const createEntry = async (req, res) => {
 	}
 
 	// logica ressultado
+	await calc(compra_venda, preco_entrada, preco_saida)
 	if (compra_venda === "compra") {
 		if (preco_saida - preco_entrada > 0) {
 			// lucro
@@ -77,7 +79,7 @@ const createEntry = async (req, res) => {
 	const token = getToken(req);
 	const user = await getUserByToken(token);
 	let capital_res = parseInt(user.capital) + parseInt(res_liq)
-	console.log(capital_res)
+	console.log(capital_res, 'cap')
 
 	const entryTrade = new Diary({
 		ativo,
