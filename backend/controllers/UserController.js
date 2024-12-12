@@ -11,7 +11,7 @@ function isValidEmail(email) {
 }
 
 const register = async (req, res) => {
-	const { name, email, capital, password, confirmpassword, image } = req.body;
+	const { name, email, password, confirmpassword, image, capital } = req.body;
 
 	if (!name) {
 		res.status(422).json({ message: "O nome é obrigatório!" });

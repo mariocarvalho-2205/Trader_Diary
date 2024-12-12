@@ -48,25 +48,25 @@ const createEntry = async (req, res) => {
 
 	// logica ressultado
 	await calc(compra_venda, preco_entrada, preco_saida)
-	if (compra_venda === "compra") {
-		if (preco_saida - preco_entrada > 0) {
-			// lucro
-			resultado_pts = preco_saida - preco_entrada;
-			console.log("gain compra", resultado_pts);
-		} else if (preco_saida - preco_entrada < 0) {
-			// loss
-			resultado_pts = preco_saida - preco_entrada;
-			console.log("loss compra", resultado_pts);
-		}
-	} else if (compra_venda === "venda") {
-		if (preco_saida - preco_entrada < 0) {
-			resultado_pts = preco_entrada - preco_saida;
-			console.log("gain venda", resultado_pts);
-		} else if (preco_saida - preco_entrada > 0) {
-			resultado_pts = preco_entrada - preco_saida;
-			console.log("loss venda", resultado_pts);
-		}
-	}
+	// if (compra_venda === "compra") {
+	// 	if (preco_saida - preco_entrada > 0) {
+	// 		// lucro
+	// 		resultado_pts = preco_saida - preco_entrada;
+	// 		console.log("gain compra", resultado_pts);
+	// 	} else if (preco_saida - preco_entrada < 0) {
+	// 		// loss
+	// 		resultado_pts = preco_saida - preco_entrada;
+	// 		console.log("loss compra", resultado_pts);
+	// 	}
+	// } else if (compra_venda === "venda") {
+	// 	if (preco_saida - preco_entrada < 0) {
+	// 		resultado_pts = preco_entrada - preco_saida;
+	// 		console.log("gain venda", resultado_pts);
+	// 	} else if (preco_saida - preco_entrada > 0) {
+	// 		resultado_pts = preco_entrada - preco_saida;
+	// 		console.log("loss venda", resultado_pts);
+	// 	}
+	// }
 
 	if (ativo === "win") {
 		res_liq = resultado_pts * 0.2;
