@@ -2,6 +2,9 @@ const Diary = require("../models/Diary");
 const User = require("../models/User");
 const calc = require('../calculos/calc')
 
+const { Op } = require('sequelize')
+const mongoose = require('mongoose')
+
 
 // helpers
 const getToken = require("../helpers/get-token");
@@ -16,7 +19,6 @@ const createEntry = async (req, res) => {
 		preco_saida,
 		estrategia,
 	} = req.body;
-	let resultado_pts;
 	let res_liq;
 
 	if (!ativo) {
@@ -47,26 +49,8 @@ const createEntry = async (req, res) => {
 	}
 
 	// logica ressultado
-	await calc(compra_venda, preco_entrada, preco_saida)
-	// if (compra_venda === "compra") {
-	// 	if (preco_saida - preco_entrada > 0) {
-	// 		// lucro
-	// 		resultado_pts = preco_saida - preco_entrada;
-	// 		console.log("gain compra", resultado_pts);
-	// 	} else if (preco_saida - preco_entrada < 0) {
-	// 		// loss
-	// 		resultado_pts = preco_saida - preco_entrada;
-	// 		console.log("loss compra", resultado_pts);
-	// 	}
-	// } else if (compra_venda === "venda") {
-	// 	if (preco_saida - preco_entrada < 0) {
-	// 		resultado_pts = preco_entrada - preco_saida;
-	// 		console.log("gain venda", resultado_pts);
-	// 	} else if (preco_saida - preco_entrada > 0) {
-	// 		resultado_pts = preco_entrada - preco_saida;
-	// 		console.log("loss venda", resultado_pts);
-	// 	}
-	// }
+	let resultado_pts = await calc(compra_venda, preco_entrada, preco_saida)
+
 
 	if (ativo === "win") {
 		res_liq = resultado_pts * 0.2;
@@ -114,21 +98,71 @@ const createEntry = async (req, res) => {
 };
 
 const getAllTrades = async (req, res) => {
-	const token = getToken(req);
-	const user = await getUserByToken(token);
-	console.log(user.name);
+    const token = getToken(req);
+    const user = await getUserByToken(token);
 
-	try {
-		const trades = await Diary.find();
-        // console.log(trades.split(", "))
-		res.status(200).json(trades);
-	} catch (error) {
-		res.status(500).json({
-			message: "Algo deu errado em getAllTrades",
-			error,
-		});
-	}
+    const { startDate, endDate, ativo } = req.body;
+	let quantidade_trades
+
+    try {
+        // Filtro inicial pelo ID do usuário
+        let filter = {
+            "user._id": new mongoose.Types.ObjectId(user.id), // Convertendo para ObjectId
+        };
+
+        // Adicionar filtros de data, se fornecidos
+        if (startDate || endDate) {
+            filter.data = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        } else if (startDate) {
+            filter.data = {
+                $gte: new Date(startDate),
+            };
+        }
+
+		if (ativo) {
+			filter.ativo = ativo
+		}
+        // Logs para depuração
+        // console.log("Filtro usado na consulta:", filter);
+
+        // Consulta ao banco de dados
+        const trades = await Diary.find(filter).sort({ data: 1 });
+
+        // Log do resultado da consulta
+        // console.log("Resultado da consulta:", trades);
+
+        // Verificar se algum trade foi encontrado
+        if (trades.length === 0) {
+            return res.status(404).json({ message: "Nenhum trade encontrado para os filtros aplicados." });
+        }
+
+		quantidade_trades = trades.length
+
+		const totalPontos = await trades.reduce((total, trade) => {
+			return  total + parseFloat(trade.resultado_pts)
+			 
+		}, 0)
+
+		const totalLiquido = await trades.reduce((total, trade) => {
+			return total + parseFloat(trade.res_liq)
+		}, 0)
+
+		console.log(totalPontos, ' pontos', totalLiquido, ' liquido')
+
+        // Retornar os trades encontrados
+        res.status(200).json({trades, totalPontos, totalLiquido, quantidade_trades});
+    } catch (error) {
+        console.error("Erro no getAllTrades:", error); // Log do erro
+        res.status(500).json({
+            message: "Algo deu errado em getAllTrades",
+            error,
+        });
+    }
 };
+
 
 module.exports = {
 	createEntry,

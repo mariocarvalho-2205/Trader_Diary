@@ -90,6 +90,7 @@ const register = async (req, res) => {
 		email,
 		password: passwordHash,
 		image,
+		capital
 	});
 
 	try {
@@ -247,7 +248,7 @@ const editUser = async (req, res) => {
 	}
 
 	if (capital) {
-		user.capital = capital
+		user.capital = (parseInt(user.capital) + parseInt(capital))
 	}
 
 	try {

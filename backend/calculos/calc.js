@@ -22,7 +22,7 @@ const calc = async (operacao, entrada, saida) => {
 			console.log("loss venda", resultado_pts);
 		}
 	}
-    console.log(open, entrada, saida, 'calc')
+    console.log(operacao, entrada, saida, 'calc')
     return resultado_pts
 }
 
