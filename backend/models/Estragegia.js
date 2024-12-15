@@ -1,22 +1,30 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const Diary = mongoose.model(
-    "Diary", 
+const Estrategia = mongoose.model(
+    "Estrategia", 
     new Schema({
-        ativo: {
+        nome: {
             type: String,
             required: true
         },
-        compra_venda: {
+        tipo: {
             type: String,
             required: true
         },
-        data: {
-            type: Date,
+        descricao: {
+            type: String,
             required: true
         },
-        preco_entrada: {
+        parametro_entrada: {
+            type: String,
+            required: true
+        },
+        parametro_saida: {
+            type: String,
+            required: true
+        },
+        alvo: {
             type: String,
             required: true
         },
@@ -24,27 +32,10 @@ const Diary = mongoose.model(
             type: String,
             required: true
         },
-        preco_saida: {
-            type: String,
-            required: true
-        },
-        estrategia: {
-            type: String,
-            required: true
-        },
-        resultado_pts: {
-            type: String,
-            required: true
-        },
-        res_liq: {
-            type: String,
-            required: true
-        },
-        user: Object,
-        estrategia: Object
+        user: Object
     }, {
         timestamps: true
     })
 );
 
-module.exports = Diary
+module.exports = Estrategia

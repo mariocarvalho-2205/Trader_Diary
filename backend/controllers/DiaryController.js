@@ -1,10 +1,10 @@
 const Diary = require("../models/Diary");
 const User = require("../models/User");
-const calc = require('../calculos/calc')
+const Estrategia = require("../models/Estragegia");
+const calc = require("../calculos/calc");
 
-const { Op } = require('sequelize')
-const mongoose = require('mongoose')
-
+const { Op } = require("sequelize");
+const mongoose = require("mongoose");
 
 // helpers
 const getToken = require("../helpers/get-token");
@@ -54,8 +54,7 @@ const createEntry = async (req, res) => {
 	}
 
 	// logica ressultado
-	let resultado_pts = await calc(compra_venda, preco_entrada, preco_saida)
-
+	let resultado_pts = await calc(compra_venda, preco_entrada, preco_saida);
 
 	if (ativo === "win") {
 		res_liq = resultado_pts * 0.2;
@@ -67,8 +66,11 @@ const createEntry = async (req, res) => {
 
 	const token = getToken(req);
 	const user = await getUserByToken(token);
-	let capital_res = parseInt(user.capital) + parseInt(res_liq)
-	console.log(capital_res, 'cap')
+	let capital_res = parseInt(user.capital) + parseInt(res_liq);
+	console.log(capital_res, "cap");
+
+	const estrategiaCompleta = await Estrategia.findOne({nome: estrategia});
+	console.log(estrategiaCompleta.nome, 'estrategia completa')
 
 	const entryTrade = new Diary({
 		ativo,
@@ -77,13 +79,13 @@ const createEntry = async (req, res) => {
 		preco_entrada,
 		stop,
 		preco_saida,
-		estrategia,
+		estrategia: estrategiaCompleta.nome,
 		resultado_pts,
 		res_liq,
 		user: {
 			_id: user._id,
 			name: user.name,
-			capital: String(capital_res)
+			capital: String(capital_res),
 		},
 	});
 
@@ -104,71 +106,79 @@ const createEntry = async (req, res) => {
 };
 
 const getAllTrades = async (req, res) => {
-    const token = getToken(req);
-    const user = await getUserByToken(token);
+	const token = getToken(req);
+	const user = await getUserByToken(token);
 
-    const { startDate, endDate, ativo } = req.body;
-	let quantidade_trades
+	const { startDate, endDate, ativo } = req.body;
+	let quantidade_trades;
 
-    try {
-        // Filtro inicial pelo ID do usuário
-        let filter = {
-            "user._id": new mongoose.Types.ObjectId(user.id), // Convertendo para ObjectId
-        };
+	try {
+		// Filtro inicial pelo ID do usuário
+		let filter = {
+			"user._id": new mongoose.Types.ObjectId(user.id), // Convertendo para ObjectId
+		};
 
-        // Adicionar filtros de data, se fornecidos
-        if (startDate || endDate) {
-            filter.data = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
-            };
-        } else if (startDate) {
-            filter.data = {
-                $gte: new Date(startDate),
-            };
-        }
+		// Adicionar filtros de data, se fornecidos
+		if (startDate || endDate) {
+			filter.data = {
+				$gte: new Date(startDate),
+				$lte: new Date(endDate),
+			};
+		} else if (startDate) {
+			filter.data = {
+				$gte: new Date(startDate),
+			};
+		}
 
 		if (ativo) {
-			filter.ativo = ativo
+			filter.ativo = ativo;
 		}
-        // Logs para depuração
-        // console.log("Filtro usado na consulta:", filter);
+		// Logs para depuração
+		// console.log("Filtro usado na consulta:", filter);
 
-        // Consulta ao banco de dados
-        const trades = await Diary.find(filter).sort({ data: 1 });
+		// Consulta ao banco de dados
+		const trades = await Diary.find(filter).sort({ data: 1 });
 
-        // Log do resultado da consulta
-        // console.log("Resultado da consulta:", trades);
+		// Log do resultado da consulta
+		// console.log("Resultado da consulta:", trades);
 
-        // Verificar se algum trade foi encontrado
-        if (trades.length === 0) {
-            return res.status(404).json({ message: "Nenhum trade encontrado para os filtros aplicados." });
-        }
+		// Verificar se algum trade foi encontrado
+		if (trades.length === 0) {
+			return res
+				.status(404)
+				.json({
+					message:
+						"Nenhum trade encontrado para os filtros aplicados.",
+				});
+		}
 
-		quantidade_trades = trades.length
+		quantidade_trades = trades.length;
 
 		const totalPontos = await trades.reduce((total, trade) => {
-			return  total + parseFloat(trade.resultado_pts)
-			 
-		}, 0)
+			return total + parseFloat(trade.resultado_pts);
+		}, 0);
 
 		const totalLiquido = await trades.reduce((total, trade) => {
-			return total + parseFloat(trade.res_liq)
-		}, 0)
+			return total + parseFloat(trade.res_liq);
+		}, 0);
 
-		console.log(totalPontos, ' pontos', totalLiquido, ' liquido')
+		console.log(totalPontos, " pontos", totalLiquido, " liquido");
 
-        // Retornar os trades encontrados
-        res.status(200).json({trades, totalPontos, totalLiquido, quantidade_trades});
-    } catch (error) {
-        console.error("Erro no getAllTrades:", error); // Log do erro
-        res.status(500).json({
-            message: "Algo deu errado em getAllTrades",
-            error,
-        });
-    }
+		// Retornar os trades encontrados
+		res.status(200).json({
+			trades,
+			totalPontos,
+			totalLiquido,
+			quantidade_trades,
+		});
+	} catch (error) {
+		console.error("Erro no getAllTrades:", error); // Log do erro
+		res.status(500).json({
+			message: "Algo deu errado em getAllTrades",
+			error,
+		});
+	}
 };
-
 
 module.exports = {
 	createEntry,
