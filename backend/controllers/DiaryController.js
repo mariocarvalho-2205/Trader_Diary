@@ -16,6 +16,7 @@ const createEntry = async (req, res) => {
 		data,
 		compra_venda,
 		preco_entrada,
+		stop,
 		preco_saida,
 		estrategia,
 	} = req.body;
@@ -37,6 +38,10 @@ const createEntry = async (req, res) => {
 	}
 	if (!preco_entrada) {
 		res.status(422).json({ message: "O preço de compra é obrigatório!" });
+		return;
+	}
+	if (!stop) {
+		res.status(422).json({ message: "O preço de stop é obrigatório!" });
 		return;
 	}
 	if (!preco_saida) {
@@ -70,6 +75,7 @@ const createEntry = async (req, res) => {
 		compra_venda,
 		data,
 		preco_entrada,
+		stop,
 		preco_saida,
 		estrategia,
 		resultado_pts,

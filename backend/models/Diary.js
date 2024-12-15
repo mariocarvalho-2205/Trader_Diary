@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { DATE } = require("sequelize");
 const { Schema } = mongoose;
 
 const Diary = mongoose.model(
@@ -18,6 +17,10 @@ const Diary = mongoose.model(
             required: true
         },
         preco_entrada: {
+            type: String,
+            required: true
+        },
+        stop: {
             type: String,
             required: true
         },
