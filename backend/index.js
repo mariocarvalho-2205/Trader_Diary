@@ -29,5 +29,5 @@ const router = require("./routes/Routes");
 app.use(router);
 
 app.listen(port, () => {
-	console.log(`Conectou supabase na porta ${port}`);
+	console.log(`Trader Diary connect in port ${port}`);
 });
